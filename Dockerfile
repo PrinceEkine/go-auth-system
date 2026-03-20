@@ -9,8 +9,8 @@ RUN go mod tidy
 # Copy the rest of the source
 COPY . .
 
-# Build the binary
-RUN go build -o auth-system main.go
+# Build static binary for Linux
+RUN CGO_ENABLED=0 GOOS=linux go build -o auth-system main.go
 
 # Second stage: lightweight runtime
 FROM alpine:latest
