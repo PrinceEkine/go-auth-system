@@ -1,56 +1,38 @@
 package auth
 
 import (
-    "context"
-    "encoding/json"
     "net/http"
+    "os"
 
     "golang.org/x/oauth2"
-    "golang.org/x/oauth2/github"
 )
 
-var GitHubOAuthConfig *oauth2.Config
+var GitHubEndpoint = oauth2.Endpoint{
+    AuthURL:  "https://github.com/login/oauth/authorize",
+    TokenURL: "https://github.com/login/oauth/access_token",
+}
 
-func InitGitHubOAuth(clientID, clientSecret string) {
-    GitHubOAuthConfig = &oauth2.Config{
-        RedirectURL:  "http://localhost:8080/auth/github/callback",
-        ClientID:     clientID,
-        ClientSecret: clientSecret,
-        Scopes:       []string{"user:email"},
-        Endpoint:     github.Endpoint,
-    }
+var githubConfig = &oauth2.Config{
+    ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
+    ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+    RedirectURL:  os.Getenv("GITHUB_REDIRECT_URL"), // e.g. https://yourdomain.com/auth/github/callback
+    Scopes:       []string{"user:email"},
+    Endpoint:     GitHubEndpoint,
 }
 
 func GitHubLoginHandler(w http.ResponseWriter, r *http.Request) {
-    url := GitHubOAuthConfig.AuthCodeURL("randomstate")
-    http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+    url := githubConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
+    http.Redirect(w, r, url, http.StatusFound)
 }
 
-func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) (string, string, error) {
+func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
     code := r.URL.Query().Get("code")
-    token, err := GitHubOAuthConfig.Exchange(context.Background(), code)
+    token, err := githubConfig.Exchange(r.Context(), code)
     if err != nil {
-        return "", "", err
+        http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
+        return
     }
 
-    client := GitHubOAuthConfig.Client(context.Background(), token)
-    resp, err := client.Get("https://api.github.com/user/emails")
-    if err != nil {
-        return "", "", err
-    }
-    defer resp.Body.Close()
-
-    var emails []map[string]interface{}
-    json.NewDecoder(resp.Body).Decode(&emails)
-
-    var email string
-    for _, e := range emails {
-        if primary, ok := e["primary"].(bool); ok && primary {
-            email = e["email"].(string)
-            break
-        }
-    }
-
-    jwtToken, _ := GenerateJWT(email)
-    return email, jwtToken, nil
+    // Use token.AccessToken (for now just display it)
+    w.Write([]byte("GitHub login successful! Access Token: " + token.AccessToken))
 }
