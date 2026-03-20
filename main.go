@@ -21,6 +21,16 @@ func main() {
     // Serve static files
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+    // Root route
+    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        tmpl, err := template.ParseFiles("templates/index.html")
+        if err != nil {
+            http.Error(w, "Template error", http.StatusInternalServerError)
+            return
+        }
+        tmpl.Execute(w, nil)
+    })
+
     // Templates
     http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
         tmpl, err := template.ParseFiles("templates/login.html")
