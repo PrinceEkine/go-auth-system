@@ -1,69 +1,184 @@
-/* style.css - custom overrides for Go Auth System */
+/* Reset some defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-/* General body styling */
 body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f4f6f8;
   color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Card styling */
-.auth-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+/* Header & Navigation */
+header {
+  background: #1e3a8a;
+  color: #fff;
+  padding: 1rem;
+}
+
+header h1 {
+  margin-bottom: 0.5rem;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  margin-right: 1rem;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Main content */
+main {
+  flex: 1;
   padding: 2rem;
-  transition: transform 0.2s ease-in-out;
-}
-
-.auth-card:hover {
-  transform: translateY(-4px);
-}
-
-/* Buttons */
-.btn-custom {
-  display: block;
-  width: 100%;
-  padding: 0.75rem;
+  max-width: 600px;
+  margin: auto;
+  background: #fff;
   border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 1rem;
   font-weight: 600;
+}
+
+input {
+  padding: 0.5rem;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: #1e3a8a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+/* Footer */
+footer {
+  background: #f1f5f9;
   text-align: center;
-  transition: background 0.3s ease;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #555;
 }
 
-.btn-google {
-  background: #DB4437;
+
+/* Reset some defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f4f6f8;
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header & Navigation */
+header {
+  background: #1e3a8a;
   color: #fff;
+  padding: 1rem;
 }
 
-.btn-google:hover {
-  background: #c23321;
+header h1 {
+  margin-bottom: 0.5rem;
 }
 
-.btn-github {
-  background: #24292e;
+nav a {
   color: #fff;
+  text-decoration: none;
+  margin-right: 1rem;
+  font-weight: 500;
 }
 
-.btn-github:hover {
-  background: #000;
+nav a:hover {
+  text-decoration: underline;
 }
 
-.btn-discord {
-  background: #5865F2;
-  color: #fff;
-}
-
-.btn-discord:hover {
-  background: #4752C4;
-}
-
-/* Dashboard */
-.dashboard {
-  max-width: 800px;
-  margin: 3rem auto;
-  background: #fff;
-  border-radius: 12px;
+/* Main content */
+main {
+  flex: 1;
   padding: 2rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+input {
+  padding: 0.5rem;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: #1e3a8a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+/* Footer */
+footer {
+  background: #f1f5f9;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #555;
 }
