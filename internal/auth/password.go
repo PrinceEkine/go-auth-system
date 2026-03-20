@@ -3,9 +3,11 @@ package auth
 import (
     "database/sql"
     "net/http"
+
     "golang.org/x/crypto/bcrypt"
 )
 
+// SignupHandler handles user registration
 func SignupHandler(db *sql.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodPost {
@@ -32,28 +34,20 @@ func SignupHandler(db *sql.DB) http.HandlerFunc {
     }
 }
 
-func LoginHandler(db *sql.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        if r.Method != http.MethodPost {
-            http.Error(w, "Invalid request", http.StatusBadRequest)
-            return
-        }
+// LoginUser validates credentials and returns email if successful
+func LoginUser(db *sql.DB, r *http.Request) (string, error) {
+    email := r.FormValue("email")
+    password := r.FormValue("password")
 
-        email := r.FormValue("email")
-        password := r.FormValue("password")
-
-        var hashed string
-        err := db.QueryRow("SELECT password FROM users WHERE email=$1", email).Scan(&hashed)
-        if err != nil {
-            http.Error(w, "User not found", http.StatusUnauthorized)
-            return
-        }
-
-        if bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password)) != nil {
-            http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-            return
-        }
-
-        http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+    var hashed string
+    err := db.QueryRow("SELECT password FROM users WHERE email=$1", email).Scan(&hashed)
+    if err != nil {
+        return "", err
     }
+
+    if bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password)) != nil {
+        return "", err
+    }
+
+    return email, nil
 }
