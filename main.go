@@ -23,11 +23,19 @@ func main() {
 
     // Templates
     http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-        tmpl := template.Must(template.ParseFiles("templates/login.html"))
+        tmpl, err := template.ParseFiles("templates/login.html")
+        if err != nil {
+            http.Error(w, "Template error", http.StatusInternalServerError)
+            return
+        }
         tmpl.Execute(w, nil)
     })
     http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
-        tmpl := template.Must(template.ParseFiles("templates/signup.html"))
+        tmpl, err := template.ParseFiles("templates/signup.html")
+        if err != nil {
+            http.Error(w, "Template error", http.StatusInternalServerError)
+            return
+        }
         tmpl.Execute(w, nil)
     })
     http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
@@ -36,22 +44,26 @@ func main() {
             http.Redirect(w, r, "/login", http.StatusSeeOther)
             return
         }
-        tmpl := template.Must(template.ParseFiles("templates/dashboard.html"))
+        tmpl, err := template.ParseFiles("templates/dashboard.html")
+        if err != nil {
+            http.Error(w, "Template error", http.StatusInternalServerError)
+            return
+        }
         tmpl.Execute(w, map[string]string{"Email": email})
     })
     http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
-        tmpl := template.Must(template.ParseFiles("templates/privacy.html"))
+        tmpl, _ := template.ParseFiles("templates/privacy.html")
         tmpl.Execute(w, nil)
     })
     http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
-        tmpl := template.Must(template.ParseFiles("templates/terms.html"))
+        tmpl, _ := template.ParseFiles("templates/terms.html")
         tmpl.Execute(w, nil)
     })
 
     // Password auth
     http.HandleFunc("/signup-post", auth.SignupHandler(db))
     http.HandleFunc("/login-post", func(w http.ResponseWriter, r *http.Request) {
-        email, err := auth.LoginUser(db, r) // new helper in password.go
+        email, err := auth.LoginUser(db, r)
         if err != nil {
             http.Error(w, "Invalid credentials", http.StatusUnauthorized)
             return
@@ -65,8 +77,8 @@ func main() {
     http.HandleFunc("/auth/google", auth.GoogleLoginHandler)
     http.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
 
-    http.HandleFunc("/auth/github", auth.GithubLoginHandler)
-    http.HandleFunc("/auth/github/callback", auth.GithubCallbackHandler)
+    http.HandleFunc("/auth/github", auth.GitHubLoginHandler)
+    http.HandleFunc("/auth/github/callback", auth.GitHubCallbackHandler)
 
     http.HandleFunc("/auth/discord", auth.DiscordLoginHandler)
     http.HandleFunc("/auth/discord/callback", auth.DiscordCallbackHandler)
@@ -88,6 +100,11 @@ func main() {
         w.Write([]byte("Auth system running..."))
     })
 
-    log.Println("Server running on :8080")
-    http.ListenAndServe(":8080", nil)
+    // Dynamic port (Render sets PORT)
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    log.Println("Server running on :" + port)
+    http.ListenAndServe(":"+port, nil)
 }
