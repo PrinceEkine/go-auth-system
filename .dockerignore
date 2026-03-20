@@ -1,0 +1,23 @@
+# Git and local configs
+.git
+.gitignore
+.env
+
+# OS/editor files
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Build artifacts
+auth-system
+*.exe
+*.out
+
+# Dependency caches
+node_modules
+vendor
+
+# IDE/project files
+.vscode
+.idea
