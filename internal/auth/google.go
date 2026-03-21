@@ -57,7 +57,7 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
         email = "googleuser@example.com"
     }
 
-    jwt, _ := GenerateJWT(email)
+    jwt, _ := GenerateJWT(email, "Google")
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
