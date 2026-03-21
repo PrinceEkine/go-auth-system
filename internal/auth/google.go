@@ -2,6 +2,7 @@ package auth
 
 import (
     "context"
+    "encoding/json"
     "log"
     "net/http"
     "os"
@@ -31,8 +32,31 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
-    // Normally you'd fetch user info here
-    email := "googleuser@example.com" // placeholder
+
+    // Fetch user info from Google API
+    client := googleOAuthConfig.Client(context.Background(), token)
+    resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+    if err != nil {
+        log.Println("Error fetching Google user info:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+    defer resp.Body.Close()
+
+    var user struct {
+        Email string `json:"email"`
+    }
+    if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+        log.Println("Error decoding Google user JSON:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+
+    email := user.Email
+    if email == "" {
+        email = "googleuser@example.com"
+    }
+
     jwt, _ := GenerateJWT(email)
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
