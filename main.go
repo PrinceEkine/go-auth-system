@@ -21,7 +21,7 @@ func main() {
     // Serve static files
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-    // Templates
+    // Public pages
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "index.html", nil)
     })
@@ -30,6 +30,12 @@ func main() {
     })
     http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "signup.html", nil)
+    })
+    http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "terms.html", nil)
+    })
+    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "privacy.html", nil)
     })
 
     // Dashboard
@@ -59,17 +65,41 @@ func main() {
         })
     })
 
-    // Settings
+    // Settings page
     http.HandleFunc("/settings", func(w http.ResponseWriter, r *http.Request) {
-        renderTemplate(w, "settings.html", nil)
+        email, provider, err := auth.ValidateJWT(r)
+        if err != nil {
+            http.Redirect(w, r, "/login", http.StatusSeeOther)
+            return
+        }
+        renderTemplate(w, "settings.html", map[string]string{
+            "Email":    email,
+            "Provider": provider,
+        })
     })
 
-    // Terms & Privacy
-    http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
-        renderTemplate(w, "terms.html", nil)
-    })
-    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
-        renderTemplate(w, "privacy.html", nil)
+    // Settings form submission
+    http.HandleFunc("/update-settings", func(w http.ResponseWriter, r *http.Request) {
+        email, _, err := auth.ValidateJWT(r)
+        if err != nil {
+            http.Redirect(w, r, "/login", http.StatusSeeOther)
+            return
+        }
+
+        if r.Method == http.MethodPost {
+            newPassword := r.FormValue("new_password")
+            notifications := r.FormValue("notifications")
+
+            err := auth.UpdateSettings(db, email, newPassword, notifications)
+            if err != nil {
+                http.Error(w, "Failed to update settings", http.StatusInternalServerError)
+                return
+            }
+
+            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+        } else {
+            http.Redirect(w, r, "/settings", http.StatusSeeOther)
+        }
     })
 
     // Password auth
