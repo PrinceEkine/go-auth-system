@@ -19,5 +19,12 @@ WORKDIR /app
 # Copy binary from builder stage
 COPY --from=builder /app/auth-system .
 
+# Copy templates and static assets into runtime image
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/static ./static
+
+# Expose port
 EXPOSE 8080
+
+# Run the binary
 CMD ["./auth-system"]
