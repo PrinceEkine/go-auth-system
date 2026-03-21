@@ -62,7 +62,7 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
         }
     }
 
-    jwt, _ := GenerateJWT(email)
+    jwt, _ := GenerateJWT(email, "GitHub")
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
