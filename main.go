@@ -72,15 +72,17 @@ func main() {
             http.Redirect(w, r, "/login", http.StatusSeeOther)
             return
         }
-        renderTemplate(w, "settings.html", map[string]string{
+        renderTemplate(w, "settings.html", map[string]interface{}{
             "Email":    email,
             "Provider": provider,
+            "Success":  false,
+            "Error":    "",
         })
     })
 
     // Settings form submission
     http.HandleFunc("/update-settings", func(w http.ResponseWriter, r *http.Request) {
-        email, _, err := auth.ValidateJWT(r)
+        email, provider, err := auth.ValidateJWT(r)
         if err != nil {
             http.Redirect(w, r, "/login", http.StatusSeeOther)
             return
@@ -92,11 +94,21 @@ func main() {
 
             err := auth.UpdateSettings(db, email, newPassword, notifications)
             if err != nil {
-                http.Error(w, "Failed to update settings", http.StatusInternalServerError)
+                renderTemplate(w, "settings.html", map[string]interface{}{
+                    "Email":    email,
+                    "Provider": provider,
+                    "Success":  false,
+                    "Error":    "Failed to update settings. Please try again.",
+                })
                 return
             }
 
-            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+            renderTemplate(w, "settings.html", map[string]interface{}{
+                "Email":    email,
+                "Provider": provider,
+                "Success":  true,
+                "Error":    "",
+            })
         } else {
             http.Redirect(w, r, "/settings", http.StatusSeeOther)
         }
