@@ -10,10 +10,20 @@ import (
 
 var jwtKey = []byte(os.Getenv("JWT_SECRET"))
 
-func GenerateJWT(email string) (string, error) {
-    claims := &jwt.RegisteredClaims{
-        Subject:   email,
-        ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+type Claims struct {
+    Email    string `json:"email"`
+    Provider string `json:"provider"`
+    jwt.RegisteredClaims
+}
+
+func GenerateJWT(email, provider string) (string, error) {
+    expirationTime := time.Now().Add(24 * time.Hour)
+    claims := &Claims{
+        Email:    email,
+        Provider: provider,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(expirationTime),
+        },
     }
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
     return token.SignedString(jwtKey)
@@ -31,23 +41,19 @@ func SetSessionCookie(w http.ResponseWriter, token string) {
     http.SetCookie(w, cookie)
 }
 
-func ValidateJWT(r *http.Request) (string, error) {
+func ValidateJWT(r *http.Request) (string, string, error) {
     cookie, err := r.Cookie("session")
     if err != nil {
-        return "", err
+        return "", "", err
     }
 
-    token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+    claims := &Claims{}
+    token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
         return jwtKey, nil
     })
     if err != nil || !token.Valid {
-        return "", err
+        return "", "", err
     }
 
-    claims, ok := token.Claims.(jwt.MapClaims)
-    if !ok {
-        return "", err
-    }
-
-    return claims["sub"].(string), nil
+    return claims.Email, claims.Provider, nil
 }
