@@ -12,65 +12,50 @@ import (
 )
 
 func main() {
+    // Connect to Postgres
     db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Database connection error:", err)
     }
     defer db.Close()
 
-    // Serve static files
+    // Serve static files (CSS, JS, images)
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-    // Root route
+    // Root route (homepage)
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        tmpl, err := template.ParseFiles("templates/index.html")
-        if err != nil {
-            http.Error(w, "Template error", http.StatusInternalServerError)
-            return
-        }
-        tmpl.Execute(w, nil)
+        renderTemplate(w, "index.html", nil)
     })
 
-    // Templates
+    // Login page
     http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-        tmpl, err := template.ParseFiles("templates/login.html")
-        if err != nil {
-            http.Error(w, "Template error", http.StatusInternalServerError)
-            return
-        }
-        tmpl.Execute(w, nil)
+        renderTemplate(w, "login.html", nil)
     })
+
+    // Signup page
     http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
-        tmpl, err := template.ParseFiles("templates/signup.html")
-        if err != nil {
-            http.Error(w, "Template error", http.StatusInternalServerError)
-            return
-        }
-        tmpl.Execute(w, nil)
+        renderTemplate(w, "signup.html", nil)
     })
+
+    // Dashboard (requires JWT)
     http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
         email, err := auth.ValidateJWT(r)
         if err != nil {
             http.Redirect(w, r, "/login", http.StatusSeeOther)
             return
         }
-        tmpl, err := template.ParseFiles("templates/dashboard.html")
-        if err != nil {
-            http.Error(w, "Template error", http.StatusInternalServerError)
-            return
-        }
-        tmpl.Execute(w, map[string]string{"Email": email})
-    })
-    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
-        tmpl, _ := template.ParseFiles("templates/privacy.html")
-        tmpl.Execute(w, nil)
-    })
-    http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
-        tmpl, _ := template.ParseFiles("templates/terms.html")
-        tmpl.Execute(w, nil)
+        renderTemplate(w, "dashboard.html", map[string]string{"Email": email})
     })
 
-    // Password auth
+    // Privacy & Terms
+    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "privacy.html", nil)
+    })
+    http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "terms.html", nil)
+    })
+
+    // Password auth handlers
     http.HandleFunc("/signup-post", auth.SignupHandler(db))
     http.HandleFunc("/login-post", func(w http.ResponseWriter, r *http.Request) {
         email, err := auth.LoginUser(db, r)
@@ -117,4 +102,19 @@ func main() {
     }
     log.Println("Server running on :" + port)
     http.ListenAndServe(":"+port, nil)
+}
+
+// Helper function to render templates safely
+func renderTemplate(w http.ResponseWriter, filename string, data interface{}) {
+    tmpl, err := template.ParseFiles("templates/" + filename)
+    if err != nil {
+        log.Println("Template load error:", err)
+        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+        return
+    }
+    err = tmpl.Execute(w, data)
+    if err != nil {
+        log.Println("Template execution error:", err)
+        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+    }
 }
