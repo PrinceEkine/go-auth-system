@@ -6,17 +6,42 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../static/style.css">
 </head>
-<body class="bg-gray-50">
-  <div class="container mx-auto mt-10">
-    <h1 class="text-3xl font-bold">Welcome to your Dashboard</h1>
-    <p class="mt-4">You are logged in successfully.</p>
-    <a href="/logout" class="mt-6 inline-block bg-red-600 text-white px-4 py-2 rounded-lg">Logout</a>
-  </div>
-  <footer>
+<body class="bg-black text-white min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-yellow-400 to-orange-500 text-black py-4 shadow-lg">
+    <div class="container mx-auto text-center">
+      <h1 class="text-3xl font-bold tracking-wide">Go Auth System Dashboard</h1>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 container mx-auto mt-10 px-4">
+    <div class="bg-gray-900 rounded-xl shadow-xl p-8 border border-yellow-400">
+      <h2 class="text-2xl font-bold text-yellow-400">Welcome, {{.Email}}</h2>
+      <p class="mt-4 text-gray-300">You are logged in successfully via {{.Provider}}.</p>
+
+      <!-- Quick Actions -->
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="/profile" class="block bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-semibold py-4 rounded-lg text-center shadow-lg hover:scale-105 transition">
+          View Profile
+        </a>
+        <a href="/settings" class="block bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-semibold py-4 rounded-lg text-center shadow-lg hover:scale-105 transition">
+          Account Settings
+        </a>
+        <a href="/logout" class="block bg-red-600 text-white font-semibold py-4 rounded-lg text-center shadow-lg hover:bg-red-700 hover:scale-105 transition">
+          Logout
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-yellow-400 py-4 mt-10 text-center shadow-inner">
     <p>
       &copy; 2026 Go Auth System |
-      <a href="/terms">Terms of Service</a> |
-      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms" class="hover:text-orange-400">Terms of Service</a> |
+      <a href="/privacy" class="hover:text-orange-400">Privacy Policy</a>
     </p>
   </footer>
 </body>
