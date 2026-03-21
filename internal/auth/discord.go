@@ -35,7 +35,10 @@ func DiscordCallbackHandler(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
+
+    // TODO: fetch real user info from Discord API using token.AccessToken
     email := "discorduser@example.com" // placeholder
+
     jwt, _ := GenerateJWT(email)
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
