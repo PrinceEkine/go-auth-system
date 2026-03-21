@@ -2,6 +2,7 @@ package auth
 
 import (
     "context"
+    "encoding/json"
     "log"
     "net/http"
     "os"
@@ -31,7 +32,36 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
-    email := "githubuser@example.com" // placeholder
+
+    // Fetch user emails from GitHub API
+    client := githubOAuthConfig.Client(context.Background(), token)
+    resp, err := client.Get("https://api.github.com/user/emails")
+    if err != nil {
+        log.Println("Error fetching GitHub user emails:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+    defer resp.Body.Close()
+
+    var emails []struct {
+        Email   string `json:"email"`
+        Primary bool   `json:"primary"`
+    }
+    if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
+        log.Println("Error decoding GitHub emails JSON:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+
+    // Pick primary email if available
+    email := "githubuser@example.com"
+    for _, e := range emails {
+        if e.Primary {
+            email = e.Email
+            break
+        }
+    }
+
     jwt, _ := GenerateJWT(email)
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
