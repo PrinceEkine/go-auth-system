@@ -2,6 +2,7 @@ package auth
 
 import (
     "context"
+    "encoding/json"
     "log"
     "net/http"
     "os"
@@ -36,8 +37,32 @@ func DiscordCallbackHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // TODO: fetch real user info from Discord API using token.AccessToken
-    email := "discorduser@example.com" // placeholder
+    // Fetch user info from Discord API
+    client := discordOAuthConfig.Client(context.Background(), token)
+    resp, err := client.Get("https://discord.com/api/users/@me")
+    if err != nil {
+        log.Println("Error fetching Discord user info:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+    defer resp.Body.Close()
+
+    var user struct {
+        ID       string `json:"id"`
+        Username string `json:"username"`
+        Email    string `json:"email"`
+    }
+    if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+        log.Println("Error decoding Discord user JSON:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
+        return
+    }
+
+    // Use real email if available, otherwise fallback to username
+    email := user.Email
+    if email == "" {
+        email = user.Username + "@discord.local"
+    }
 
     jwt, _ := GenerateJWT(email)
     SetSessionCookie(w, jwt)
