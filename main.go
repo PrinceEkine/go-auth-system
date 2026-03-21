@@ -129,34 +129,13 @@ func main() {
 
     // OAuth routes
     http.HandleFunc("/auth/google", auth.GoogleLoginHandler)
-    http.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
-        email := auth.GoogleCallbackHandler(w, r)
-        if email != "" {
-            token, _ := auth.GenerateJWT(email, "Google")
-            auth.SetSessionCookie(w, token)
-            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-        }
-    })
+    http.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
 
     http.HandleFunc("/auth/github", auth.GitHubLoginHandler)
-    http.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
-        email := auth.GitHubCallbackHandler(w, r)
-        if email != "" {
-            token, _ := auth.GenerateJWT(email, "GitHub")
-            auth.SetSessionCookie(w, token)
-            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-        }
-    })
+    http.HandleFunc("/auth/github/callback", auth.GitHubCallbackHandler)
 
     http.HandleFunc("/auth/discord", auth.DiscordLoginHandler)
-    http.HandleFunc("/auth/discord/callback", func(w http.ResponseWriter, r *http.Request) {
-        email := auth.DiscordCallbackHandler(w, r)
-        if email != "" {
-            token, _ := auth.GenerateJWT(email, "Discord")
-            auth.SetSessionCookie(w, token)
-            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-        }
-    })
+    http.HandleFunc("/auth/discord/callback", auth.DiscordCallbackHandler)
 
     // Logout
     http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
