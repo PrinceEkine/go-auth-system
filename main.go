@@ -12,32 +12,25 @@ import (
 )
 
 func main() {
-    // Connect to Postgres
     db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
     if err != nil {
         log.Fatal("Database connection error:", err)
     }
     defer db.Close()
 
-    // Serve static files (CSS, JS, images)
+    // Serve static files
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-    // Root route (homepage)
+    // Templates
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "index.html", nil)
     })
-
-    // Login page
     http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "login.html", nil)
     })
-
-    // Signup page
     http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "signup.html", nil)
     })
-
-    // Dashboard (requires JWT)
     http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
         email, err := auth.ValidateJWT(r)
         if err != nil {
@@ -46,16 +39,14 @@ func main() {
         }
         renderTemplate(w, "dashboard.html", map[string]string{"Email": email})
     })
-
-    // Privacy & Terms
-    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
-        renderTemplate(w, "privacy.html", nil)
-    })
     http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "terms.html", nil)
     })
+    http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "privacy.html", nil)
+    })
 
-    // Password auth handlers
+    // Password auth
     http.HandleFunc("/signup-post", auth.SignupHandler(db))
     http.HandleFunc("/login-post", func(w http.ResponseWriter, r *http.Request) {
         email, err := auth.LoginUser(db, r)
@@ -80,12 +71,7 @@ func main() {
 
     // Logout
     http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-        cookie := &http.Cookie{
-            Name:   "session",
-            Value:  "",
-            Path:   "/",
-            MaxAge: -1,
-        }
+        cookie := &http.Cookie{Name: "session", Value: "", Path: "/", MaxAge: -1}
         http.SetCookie(w, cookie)
         http.Redirect(w, r, "/login", http.StatusSeeOther)
     })
@@ -95,7 +81,6 @@ func main() {
         w.Write([]byte("Auth system running..."))
     })
 
-    // Dynamic port (Render sets PORT)
     port := os.Getenv("PORT")
     if port == "" {
         port = "8080"
@@ -104,7 +89,6 @@ func main() {
     http.ListenAndServe(":"+port, nil)
 }
 
-// Helper function to render templates safely
 func renderTemplate(w http.ResponseWriter, filename string, data interface{}) {
     tmpl, err := template.ParseFiles("templates/" + filename)
     if err != nil {
