@@ -64,7 +64,7 @@ func DiscordCallbackHandler(w http.ResponseWriter, r *http.Request) {
         email = user.Username + "@discord.local"
     }
 
-    jwt, _ := GenerateJWT(email)
+    jwt, _ := GenerateJWT(email, "Discord")
     SetSessionCookie(w, jwt)
     http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
