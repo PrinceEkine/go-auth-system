@@ -1,38 +1,38 @@
 package auth
 
 import (
+    "context"
+    "log"
     "net/http"
     "os"
 
     "golang.org/x/oauth2"
+    "golang.org/x/oauth2/github"
 )
 
-var GitHubEndpoint = oauth2.Endpoint{
-    AuthURL:  "https://github.com/login/oauth/authorize",
-    TokenURL: "https://github.com/login/oauth/access_token",
-}
-
-var githubConfig = &oauth2.Config{
+var githubOAuthConfig = &oauth2.Config{
+    RedirectURL:  os.Getenv("GITHUB_REDIRECT_URL"),
     ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
     ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
-    RedirectURL:  os.Getenv("GITHUB_REDIRECT_URL"), // e.g. https://yourdomain.com/auth/github/callback
     Scopes:       []string{"user:email"},
-    Endpoint:     GitHubEndpoint,
+    Endpoint:     github.Endpoint,
 }
 
 func GitHubLoginHandler(w http.ResponseWriter, r *http.Request) {
-    url := githubConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
-    http.Redirect(w, r, url, http.StatusFound)
+    url := githubOAuthConfig.AuthCodeURL("state-token")
+    http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
     code := r.URL.Query().Get("code")
-    token, err := githubConfig.Exchange(r.Context(), code)
+    token, err := githubOAuthConfig.Exchange(context.Background(), code)
     if err != nil {
-        http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
+        log.Println("GitHub OAuth exchange error:", err)
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
-
-    // Use token.AccessToken (for now just display it)
-    w.Write([]byte("GitHub login successful! Access Token: " + token.AccessToken))
+    email := "githubuser@example.com" // placeholder
+    jwt, _ := GenerateJWT(email)
+    SetSessionCookie(w, jwt)
+    http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
