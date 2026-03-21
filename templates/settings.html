@@ -5,6 +5,16 @@
   <title>Settings - Go Auth System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../static/style.css">
+  <style>
+    .fade-out {
+      animation: fadeOut 3s forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+  </style>
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col">
 
@@ -23,8 +33,15 @@
 
       <!-- Success Banner -->
       {{if .Success}}
-      <div class="mt-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg">
+      <div id="flashMessage" class="mt-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg">
         ✅ Settings updated successfully!
+      </div>
+      {{end}}
+
+      <!-- Error Banner -->
+      {{if .Error}}
+      <div id="flashMessage" class="mt-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg">
+        ❌ {{.Error}}
       </div>
       {{end}}
 
@@ -72,5 +89,17 @@
       <a href="/privacy" class="hover:text-orange-400">Privacy Policy</a>
     </p>
   </footer>
+
+  <!-- Flash Message Script -->
+  <script>
+    window.onload = function() {
+      const flash = document.getElementById("flashMessage");
+      if (flash) {
+        setTimeout(() => {
+          flash.classList.add("fade-out");
+        }, 2000); // start fading after 2 seconds
+      }
+    };
+  </script>
 </body>
 </html>
