@@ -31,14 +31,40 @@ func main() {
     http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "signup.html", nil)
     })
+
+    // Dashboard
     http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-        email, err := auth.ValidateJWT(r)
+        email, provider, err := auth.ValidateJWT(r)
         if err != nil {
             http.Redirect(w, r, "/login", http.StatusSeeOther)
             return
         }
-        renderTemplate(w, "dashboard.html", map[string]string{"Email": email})
+        renderTemplate(w, "dashboard.html", map[string]string{
+            "Email":    email,
+            "Provider": provider,
+        })
     })
+
+    // Profile
+    http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+        email, provider, err := auth.ValidateJWT(r)
+        if err != nil {
+            http.Redirect(w, r, "/login", http.StatusSeeOther)
+            return
+        }
+        renderTemplate(w, "profile.html", map[string]string{
+            "Email":    email,
+            "Provider": provider,
+            "JoinDate": "March 2026", // Replace with DB value if available
+        })
+    })
+
+    // Settings
+    http.HandleFunc("/settings", func(w http.ResponseWriter, r *http.Request) {
+        renderTemplate(w, "settings.html", nil)
+    })
+
+    // Terms & Privacy
     http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
         renderTemplate(w, "terms.html", nil)
     })
@@ -54,20 +80,41 @@ func main() {
             http.Error(w, "Invalid credentials", http.StatusUnauthorized)
             return
         }
-        token, _ := auth.GenerateJWT(email)
+        token, _ := auth.GenerateJWT(email, "Password")
         auth.SetSessionCookie(w, token)
         http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
     })
 
     // OAuth routes
     http.HandleFunc("/auth/google", auth.GoogleLoginHandler)
-    http.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
+    http.HandleFunc("/auth/google/callback", func(w http.ResponseWriter, r *http.Request) {
+        email := auth.GoogleCallbackHandler(w, r)
+        if email != "" {
+            token, _ := auth.GenerateJWT(email, "Google")
+            auth.SetSessionCookie(w, token)
+            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+        }
+    })
 
     http.HandleFunc("/auth/github", auth.GitHubLoginHandler)
-    http.HandleFunc("/auth/github/callback", auth.GitHubCallbackHandler)
+    http.HandleFunc("/auth/github/callback", func(w http.ResponseWriter, r *http.Request) {
+        email := auth.GitHubCallbackHandler(w, r)
+        if email != "" {
+            token, _ := auth.GenerateJWT(email, "GitHub")
+            auth.SetSessionCookie(w, token)
+            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+        }
+    })
 
     http.HandleFunc("/auth/discord", auth.DiscordLoginHandler)
-    http.HandleFunc("/auth/discord/callback", auth.DiscordCallbackHandler)
+    http.HandleFunc("/auth/discord/callback", func(w http.ResponseWriter, r *http.Request) {
+        email := auth.DiscordCallbackHandler(w, r)
+        if email != "" {
+            token, _ := auth.GenerateJWT(email, "Discord")
+            auth.SetSessionCookie(w, token)
+            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+        }
+    })
 
     // Logout
     http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
