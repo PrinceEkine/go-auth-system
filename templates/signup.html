@@ -5,6 +5,7 @@
   <title>Sign Up - Go Auth System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <header>
@@ -20,6 +21,24 @@
 
       <button type="submit">Sign Up</button>
     </form>
+
+    <p class="switch-link">
+      Already have an account? <a href="/login">Login here</a>
+    </p>
+
+    <section class="oauth">
+      <h2>Or sign up with:</h2>
+      <a href="/auth/google" title="Sign up with Google"><i class="fab fa-google fa-2x"></i></a>
+      <a href="/auth/github" title="Sign up with GitHub"><i class="fab fa-github fa-2x"></i></a>
+      <a href="/auth/discord" title="Sign up with Discord"><i class="fab fa-discord fa-2x"></i></a>
+    </section>
   </main>
 </body>
+<footer>
+  <p>
+    &copy; 2026 Go Auth System |
+    <a href="/terms">Terms of Service</a> |
+    <a href="/privacy">Privacy Policy</a>
+  </p>
+</footer>
 </html>
